@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap');
+
+:root{
+    --background: #091057;
+    --primary-text: #EC8305;
+    --secondary-text: #DBD3D3;
+}
+
+.btn-wrap{
+    display: grid;
+    place-items: center;
+    position: relative;
+    z-index: 1;
+
+}
+
+.btn-wrap::before{
+    content: '';
+    height: 50px;
+    width: 170px;
+    background-color: var(--secondary-text);
+    border-radius: 10px 0;
+    border: none;
+    position: absolute;
+    top: 10px;
+    left: -10px;
+    z-index: -1;
+}
+
+.std-btn{
+    height: 50px;
+    width: 170px;
+    background-color: var(--primary-text);
+    border-radius: 10px 0;
+    border: none;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.std-btn:active {
+    transform: translateY(4px) translateX(-4px); 
+}
+
+.std-btn p{
+    font-family: "Orbitron", sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    z-index: 1;
+    color: var(--background);
+}

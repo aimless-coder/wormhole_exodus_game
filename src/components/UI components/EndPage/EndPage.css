@@ -1,15 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap');
-
-:root{
-    --background-end: linear-gradient( 99.9deg, rgba(27,24,31,1) 21.2%, rgba(50,4,89,1) 84.8% );
-    --secondary-text: #DBD3D3;
-    --secondary-background: #091057;
-}
-
 .end-container{
     height: 100vh;
     width: 100vw;
-    background: var(--background-end);
+    background: linear-gradient( 99.9deg, rgba(27,24,31,1) 21.2%, rgba(50,4,89,1) 84.8%);
     display: grid;
     place-items: center;
 }

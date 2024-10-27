@@ -1,0 +1,31 @@
+.fuelMeter-container{
+    padding: 5px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.fuel-bar{
+    height: 40px;
+    width: 200px;
+    padding: 2px;
+    border-radius: 0 20px 0 20px;
+    border: 2px solid white;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    overflow: hidden;
+}
+
+.fuel-bar-fill{
+    height: 30px;
+    width: 190px;
+    background-color: #FFD700;
+    border-radius: 0 15px 0 15px;
+    transition: width 0.1s linear;
+}
+
+.fuel-img img{
+    height: 40px;
+}

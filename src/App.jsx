@@ -6,6 +6,8 @@ import Home from './components/UI components/HomePage/Home';
 import EndPage from './components/UI components/EndPage/EndPage';
 import PauseMenu from './components/UI components/PauseMenu/PauseMenu';
 import GameStart from './components/UI components/GameStart/GameStart';
+import FuelMeter from './components/UI components/InGameUI/FuelMeter/FuelMeter';
+import InGameUI from './components/UI components/InGameUI/InGameUI';
 
 function App() {
 
@@ -13,8 +15,12 @@ function App() {
 
   return (
     <>
-    
-    <Home />
+    <div className="content">
+    <WormholeShooter />
+    <div className="ui-mat">
+      <InGameUI />
+    </div>
+    </div>
     </>
   )
 }

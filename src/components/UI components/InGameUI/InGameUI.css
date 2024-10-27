@@ -1,0 +1,31 @@
+.card-wrapper{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-card{
+    font-family: "Orbitron", sans-serif;
+    color: #FFD700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.score.img{
+    height: 20px;
+}
+
+.score-card p{
+    font-weight: 500;
+    font-size: 1.18rem;
+    letter-spacing: 5px;
+}
+
+.score-card p span{
+    font-size: 3rem;
+}
+

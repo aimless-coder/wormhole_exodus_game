@@ -48,9 +48,6 @@ function WormholeShooter() {
     composer.addPass(sceneRender);
     composer.addPass(bloomPass);
 
-    // const stars = getStarfield();
-    // scene.add(stars);
-
     //GAME ENVIRONMENT
 
     //Tube Geometry
@@ -110,17 +107,6 @@ function WormholeShooter() {
       );
 
       hitBox.rotation.set(coords.x, coords.y, coords.z);
-
-      // const edges = new THREE.EdgesGeometry(obstaclesGeo, 0.2)
-      // const lineMaterial = new THREE.LineBasicMaterial({color});
-      // const boxLines = new THREE.LineSegments(edges, lineMaterial);
-
-      // boxLines.position.copy(pos);
-      // boxLines.rotation.set(coords.x, coords.y, coords.z);
-      // hitBox.userData.box = boxLines;
-
-      // scene.add(boxLines);
-
       hitBox.userData.box = hitBox;
       obstaclesGroup.add(hitBox);
     }

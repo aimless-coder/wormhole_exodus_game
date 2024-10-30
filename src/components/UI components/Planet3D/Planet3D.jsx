@@ -1,33 +1,39 @@
 import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import * as THREE from 'three'
+import getStarPoint from '../../Game/GameComps/starPoint';
 
 const Planet3D = () => {
-  const mountRef = useRef(null);
+  const mountRef = useRef();
   const rendererRef = useRef(null); 
   const cameraRef = useRef(null);
   const ringsRef = useRef([]);
 
   useEffect(() => {
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
+    let width = mountRef.current.clientWidth;
+    let height = mountRef.current.clientHeight;
 
     const aspectRatio = width/height;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(80, aspectRatio, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(90, aspectRatio, 0.1, 1000);
     cameraRef.current = camera; 
 
-    const renderer = new THREE.WebGLRenderer({alpha: true});
+    const renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
     renderer.setSize(width, height);
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
+    const starField = getStarPoint();
+    scene.add(starField);
+
     const geometry = new THREE.SphereGeometry(0.9, 32, 32);
     const textureLoader = new THREE.TextureLoader();
     const material = new THREE.MeshStandardMaterial({
-      map: textureLoader.load('./images/planet.png'), // 
+      map: textureLoader.load('./images/planet.png'),
     });
     const planet = new THREE.Mesh(geometry, material);
+    planet.position.x = 1.5;
+    planet.position.y = -0.5;
     planet.rotation.z = -25 * Math.PI / 180;
     scene.add(planet);
 
@@ -42,6 +48,8 @@ const Planet3D = () => {
     const ringRadiusIncrement = 0.5;
 
     const astroidGroup = new THREE.Group();
+    astroidGroup.position.x = 1.5
+    astroidGroup.position.y = -0.5
     astroidGroup.rotation.z = -25 * Math.PI / 180;
     scene.add(astroidGroup);
 
@@ -84,8 +92,11 @@ const Planet3D = () => {
   animate();
 
     const handleResize = () => {
-      renderer.setSize(width, height);
+      const width = mountRef.current.clientWidth;
+      const height = mountRef.current.clientHeight;
       camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
       camera.updateProjectionMatrix();
     };
 
@@ -93,8 +104,11 @@ const Planet3D = () => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      mountRef.current.removeChild(renderer.domElement);
+      if (mountRef.current && rendererRef.current) {
+        mountRef.current.removeChild(rendererRef.current.domElement);
+        rendererRef.current.dispose();
     };
+  }
   }, []);
 
   return <div ref={mountRef} style={{ width: '100%', height: '100%' }} />;

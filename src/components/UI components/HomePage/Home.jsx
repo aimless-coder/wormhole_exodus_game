@@ -1,33 +1,37 @@
 import Button from "../Button/Button"
 import Planet3D from "../Planet3D/Planet3D";
-import StarField from "../StarField/StarField";
 import './Home.css';
 
 
 const Home = () => {
 
+    const newGame = () => {
+        console.log("Clicked");
+    }
   return (
     <div className="home-container">
         <div className="home-wrapper">
-            <div className="starfield">
-                <StarField />
+            <div className="planet">
+                <Planet3D />
             </div>
-            <div className="home-section" >
+            <div className="hero-part">
                 <div className="title">
-                    <h1>Wormhole Exodus</h1>
+                    <h1>WORMHOLE EXODUS</h1>
+                    <p>A Space Odessy</p>
                 </div>
-                <div className="hero-section">
-                    <div className="menu-section">
-                        <div className="menu">
-                            <Button />
-                            <Button />
-                            <Button />
-                            <Button />
-                        </div>
-                        <div className="img3d">
-                            <Planet3D />
+                <div className="menu-section">
+                    <div className="menu">
+                        <Button name="New Game" handleClick={newGame} to="/new-game" />
+                        <Button name={"Load Game"} handleClick={() => console.log("Clicked")}/>
+                        <Button name={"Sound"} handleClick={() => console.log("Clicked")}/>
+                        <Button name={"Exit"} handleClick={() => console.log("Clicked")}/>
                     </div>
-                    </div>
+                </div>
+                <div className="footer">
+                    <a className="credits">
+                        <img src="./images/github.png"/>
+                        <p>Created with love.</p>
+                    </a>
                 </div>
             </div>
         </div>

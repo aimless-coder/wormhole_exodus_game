@@ -3,15 +3,18 @@ import { useEffect, useRef} from "react";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import './Game.css';
 
-import tubePath from './GameComps/tubePath'
-import obstacles from './GameComps/obstacles'
-import getCrosshair from './GameComps/getCrosshair'
-import getStarPoint from "./GameComps/starPoint"
+import InGameUI from '../UI components/InGameUI/InGameUI';
+import tubePath from './GameComps/tubePath';
+import obstacles from './GameComps/obstacles';
+import getCrosshair from './GameComps/getCrosshair';
+import getStarPoint from "./GameComps/starPoint";
 
 
 function WormholeShooter() {
     const containerRef = useRef();
+    const rendererRef = useRef(null);
     
     useEffect(() => {
       
@@ -54,19 +57,6 @@ function WormholeShooter() {
           sound.setBuffer(buffer);
         });
       });
-
-
-      const startBGSound = () =>{
-        const backgroundSound = new THREE.Audio(listener);
-        audioLoader.load('./audio/gameBackground.mp3', function (buffer) {
-          backgroundSound.setBuffer(buffer);
-          backgroundSound.setLoop(true);
-          backgroundSound.setVolume(0.3);
-          backgroundSound.play();
-        });
-      }
-
-
       
       // RENDERER SETUP
       const renderer = new THREE.WebGLRenderer({antialias: true});
@@ -76,6 +66,7 @@ function WormholeShooter() {
       renderer.outputColorSpace = THREE.SRGBColorSpace;
   
       containerRef.current.appendChild(renderer.domElement);
+      rendererRef.current = renderer;
   
       //POST PROCESSING
       const sceneRender = new RenderPass(scene, camera);
@@ -104,9 +95,6 @@ function WormholeShooter() {
   
       
       let laserGroup = [];
-
-
-  
       const rayCaster = new THREE.Raycaster();
       const direction = new THREE.Vector3();
       const impactPos = new THREE.Vector3();
@@ -234,7 +222,6 @@ function WormholeShooter() {
         crosshair.position.set(mousePos.x, mousePos.y, -1);
         laserGroup.forEach(l => l.userData.update());
         composer.render(scene, camera);
-        // startBGSound();
       }
       animate();
   
@@ -245,23 +232,28 @@ function WormholeShooter() {
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
+        bloomPass.setSize(w, h);
       }
       window.addEventListener("resize", handleWindowResize);
   
       // CLEANUP
       return () => {
         window.removeEventListener("resize", handleWindowResize);
-        containerRef.current.removeChild(renderer.domElement);
+        if (containerRef.current && rendererRef.current) {
+          containerRef.current.removeChild(rendererRef.current.domElement);
+          rendererRef.current.dispose();
+      };
       };
     }, []);
   
     return (
-    <div>
-      <div ref={containerRef} style={{ width: "100%", height: "100vh", cursor: "none" }} />
+    <div className = "game">
+      <div ref={containerRef} className="gameContainer" />
+      <div className="ui-wrapper">
+        <InGameUI />
+      </div>
     </div>
     )
   }
   
   export default WormholeShooter;
-
-

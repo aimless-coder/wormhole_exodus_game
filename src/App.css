@@ -1,11 +1,7 @@
-.content{
-    position: relative;
-    z-index: 1;
-}
-
-.ui-mat{
-    padding: 10px;
-    position: absolute;
-    top: 0;
-    left: 0;
+.container{
+    height: 100vh;
+    width: 100vw;
+    background-color: black;
+    display: grid;
+    place-items: center;
 }

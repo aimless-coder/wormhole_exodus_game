@@ -1,22 +1,32 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css'
-import Preloader from './components/UI components/Preloader/Preloader'
-import Home from './components/UI components/HomePage/Home';
-import EndPage from './components/UI components/EndPage/EndPage';
-import PauseMenu from './components/UI components/PauseMenu/PauseMenu';
-import GameStart from './components/UI components/GameStart/GameStart';
-import FuelMeter from './components/UI components/InGameUI/FuelMeter/FuelMeter';
-import InGameUI from './components/UI components/InGameUI/InGameUI';
+import Home from './components/UI components/HomePage/Home'
+import GameStart from './components/UI components/GameStart/GameStart'
 import Game from './components/Game/Game'
-import StarField from './components/UI components/StarField/StarField';
+
+
+import Preloader from './components/UI components/Preloader/Preloader'
+const HomeScreen = lazy(() => import('./components/UI components/HomePage/Home'))
+
+
+
 function App() {
 
 
 
   return (
-    <>
-    <Game />
-    </>
+    <div className="container">
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/new-game" element={<GameStart />} />
+        <Route path="/game" element={<Game />} />
+        {/* <Route path="/settings" element={<Settings />} />
+        <Route path="/exit" element={<Exit />} /> */}
+      </Routes>
+    </Router>
+    </div>
   )
 }
 

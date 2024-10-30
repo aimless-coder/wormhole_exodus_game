@@ -1,70 +1,84 @@
-.home-container{
-    height: 100vh;
+.home-container {
     width: 100vw;
+    height: 100vh;
+    display: grid;
+    place-items: center;
 }
 
-.home-wrapper{
+.home-wrapper {
+    width: 100%;
+    height: 100%;
     position: relative;
-    overflow: hidden;
 }
 
-.starfield{
+.planet {
     width: 100%;
     height: 100%;
     z-index: 1;
 }
 
-.home-section{
+.hero-part{
     width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 3rem;
+    justify-content: space-evenly;
+    align-items: start;
+    padding: 50px;
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 2;
 }
 
 .title{
     width: 100%;
-    padding-inline: 40px;
+    padding: 20px 0;
+    color: aliceblue;
+    font-family: 'Audiowide', sans-serif;
 }
 
 .title h1{
-    font-family: 'Audiowide', sans-serif;
     font-size: 72px;
-    color: white;
 }
 
-.hero-section{
-    width: 100%;
-    display: grid;
-    place-items: center;
-    padding: 20px;
+.title p{
+font-size: 28PX;
 }
 
 .menu-section{
-    width: 50%;
-    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    display: grid;
+    place-items: start;
+    padding: 20px;
+}
+
+.menu{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: end;
+    gap: 20px;
+    padding-left: 10rem;
+}
+
+.footer{
+    width: 100%;
     display: grid;
     place-items: center;
 }
 
-.menu{
-    display:flex;
-    flex-direction: column;
-    gap: 20px;
+.credits{
+    display: flex;
+    gap: 10px;
     justify-content: center;
     align-items: center;
+    color: rgba(255, 255, 255, 0.582);
+    font-size: 18px;
 }
 
-.img3d{
-    height: 500px;
-    width: 500px;
+.credits img{
+    height: 18px;
+    opacity: 0.5;
 }
-
-
 
 

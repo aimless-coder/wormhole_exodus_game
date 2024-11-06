@@ -1,5 +1,4 @@
-
-.game{
+.game-wrapper{
     position: relative;
 }
 
@@ -16,4 +15,11 @@
     top: 0;
     left: 0;
     z-index: 2;
+}
+
+.game-complete{
+    z-index: 3;
+    position: absolute;
+    top: 0;
+    left: 0;
 }

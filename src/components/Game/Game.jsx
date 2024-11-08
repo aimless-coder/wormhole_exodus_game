@@ -217,14 +217,16 @@ function WormholeShooter() {
     };
 
     const fireLaserShot = () => {
-      if (!isComplete) {
+      if (!isComplete && !loading) {
         const laser = getLaserShot();
         laserGroup.push(laser);
         scene.add(laser);
 
-        laserSound.stop();
-        laserSound.detune = Math.floor(Math.random() * 1000 - 800);
-        laserSound.play();
+        if (!isComplete) {
+          laserSound.stop();
+          laserSound.detune = Math.floor(Math.random() * 1000 - 800);
+          laserSound.play();
+        }
 
         let inactiveLasers = laserGroup.filter(
           (l) => l.userData.active === false
@@ -290,9 +292,10 @@ function WormholeShooter() {
     // CLEANUP
     return () => {
       window.removeEventListener("resize", handleWindowResize);
-      if (!loading) {
-        window.removeEventListener("click", fireLaserShot);
-      }
+      window.removeEventListener("click", fireLaserShot);
+
+      if (explodeSound) explodeSound.stop();
+      if (laserSound) laserSound.stop();
 
       if (containerRef.current && rendererRef.current) {
         containerRef.current.removeChild(rendererRef.current.domElement);
@@ -321,12 +324,14 @@ function WormholeShooter() {
   }, [currentLevel, isComplete]);
 
   useEffect(() => {
-    if (loading) {
-      setTimeout(startGame, 2000);
-    } else {
-      initializeGame();
+    if (!isComplete) {
+      if (loading) {
+        setTimeout(startGame, 2000);
+      } else {
+        initializeGame();
+      }
     }
-  }, [loading]);
+  }, [loading, isComplete]);
 
   return (
     <div className="game">

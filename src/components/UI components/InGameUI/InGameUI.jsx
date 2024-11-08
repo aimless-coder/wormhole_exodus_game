@@ -1,7 +1,7 @@
 import FuelMeter from "./FuelMeter/FuelMeter";
 import "./InGameUI.css";
 
-const InGameUI = ({ score, goal }) => {
+const InGameUI = ({ score, goal, time, timeLimit }) => {
   return (
     <div className="UI-Content">
       <div className="card-wrapper">
@@ -16,7 +16,7 @@ const InGameUI = ({ score, goal }) => {
           </div>
         </div>
         <div className="fuel-meter">
-          <FuelMeter />
+          <FuelMeter time={time} timeLimit={timeLimit} />
         </div>
       </div>
     </div>

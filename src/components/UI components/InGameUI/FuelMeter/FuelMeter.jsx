@@ -1,16 +1,7 @@
-import { useEffect, useState } from "react";
 import "./FuelMeter.css";
 
-const FuelMeter = ({ progress = 100 }) => {
-  const [fuel, setFuel] = useState(progress);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFuel((prevFuel) => Math.max(prevFuel - 1, 0));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+const FuelMeter = ({ time, timeLimit }) => {
+  const fuel = (time / timeLimit) * 100;
 
   return (
     <div className="fuelMeter-container">

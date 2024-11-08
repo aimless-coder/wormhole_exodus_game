@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
-    align-items: center;
+    align-items: start;
     justify-content: center;
 }
 
@@ -15,8 +15,14 @@
     gap: 20px;
 }
 
-.score.img{
-    height: 20px;
+.score-img{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.score-img img{
+    height: 60px;
 }
 
 .score-card p{

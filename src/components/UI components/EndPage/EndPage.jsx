@@ -4,13 +4,17 @@ import { useLocation } from "react-router-dom";
 
 const EndPage = () => {
   const location = useLocation();
-  const { score, goal } = location.state || { score: 0, goal: 0 };
+  const { score, goal, level } = location.state || {
+    score: 0,
+    goal: 0,
+    level: 0,
+  };
   return (
     <div className="end-container">
       <div className="wrapper">
         <div className="text-section">
           <h2>
-            Level: <span>1</span> Complete
+            Level: <span>{level}</span> Complete
           </h2>
         </div>
         <div className="score-container">

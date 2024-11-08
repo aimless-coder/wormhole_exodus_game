@@ -2,17 +2,19 @@ import { useNavigate } from "react-router-dom";
 import Button from "../Button/Button";
 import "./LevelComplete.css";
 
-const LevelComplete = ({ score, goal }) => {
+const LevelComplete = ({ score, goal, level }) => {
   const navigate = useNavigate();
   const handleClick = () => {
-    navigate("/game-score", { state: { score, goal } });
+    navigate("/game-score", { state: { score, goal, level } });
   };
+
+  let message = "Nice Job";
 
   return (
     <div className="msgContainer">
       <div className="message-box">
         <div className="message">
-          <p>Good Job !!!</p>
+          <p>{message}</p>
         </div>
         <Button name={"Next"} handleClick={handleClick} />
       </div>

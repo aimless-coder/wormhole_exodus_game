@@ -13,9 +13,9 @@ import getStarPoint from "./GameComps/starPoint";
 import LevelComplete from "../UI components/LevelComplete/LevelComplete";
 
 const levelConfig = [
-  { obstacleCount: 50, cameraSpeed: 0.1, goal: 5 },
-  { obstacleCount: 70, cameraSpeed: 0.16, goal: 10 },
-  { obstacleCount: 100, cameraSpeed: 0.22, goal: 15 },
+  { obstacleCount: 50, cameraSpeed: 0.1, goal: 30, timeLimit: 100 },
+  { obstacleCount: 70, cameraSpeed: 0.16, goal: 50, timeLimit: 150 },
+  { obstacleCount: 90, cameraSpeed: 0.22, goal: 70, timeLimit: 200 },
 ];
 
 function WormholeShooter() {
@@ -25,8 +25,50 @@ function WormholeShooter() {
 
   const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(
+    levelConfig[currentLevel].timeLimit
+  );
 
-  const { obstacleCount, cameraSpeed, goal } = levelConfig[2];
+  const { obstacleCount, cameraSpeed, goal, timeLimit } =
+    levelConfig[currentLevel];
+
+  const handleLevel = () => {
+    if (currentLevel < levelConfig.length - 1) {
+      setCurrentLevel((prev) => prev + 1);
+    }
+  };
+
+  const handleLevelTimeout = () => {
+    if (score < goal) {
+      setIsComplete(true);
+    }
+  };
+
+  useEffect(() => {
+    setScore(0);
+    setTimeRemaining(timeLimit);
+
+    let timer;
+    if (!isComplete) {
+      timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleLevelTimeout();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [currentLevel, isComplete]);
+
+  useEffect(() => {
+    setTimeRemaining(timeLimit);
+    setScore(0);
+  }, [currentLevel, timeLimit]);
 
   useEffect(() => {
     let w = window.innerWidth;
@@ -158,6 +200,7 @@ function WormholeShooter() {
           setScore((prev) => {
             const newScore = prev + 1;
             if (newScore >= goal) {
+              handleLevel();
               setIsComplete(true);
             }
             return newScore;
@@ -204,22 +247,24 @@ function WormholeShooter() {
     };
 
     const fireLaserShot = () => {
-      const laser = getLaserShot();
-      laserGroup.push(laser);
-      scene.add(laser);
+      if (!isComplete) {
+        const laser = getLaserShot();
+        laserGroup.push(laser);
+        scene.add(laser);
 
-      laserSound.stop();
-      laserSound.detune = Math.floor(Math.random() * 1000 - 800);
-      laserSound.play();
+        laserSound.stop();
+        laserSound.detune = Math.floor(Math.random() * 1000 - 800);
+        laserSound.play();
 
-      let inactiveLasers = laserGroup.filter(
-        (l) => l.userData.active === false
-      );
-      scene.remove(...inactiveLasers);
-      laserGroup = laserGroup.filter((l) => l.userData.active === true);
+        let inactiveLasers = laserGroup.filter(
+          (l) => l.userData.active === false
+        );
+        scene.remove(...inactiveLasers);
+        laserGroup = laserGroup.filter((l) => l.userData.active === true);
+      }
     };
 
-    window.addEventListener("click", () => fireLaserShot());
+    window.addEventListener("click", fireLaserShot);
 
     const mousePos = new THREE.Vector2(0, 0);
     const onMouseMove = (e) => {
@@ -245,14 +290,16 @@ function WormholeShooter() {
 
     // ANIMATION LOOP
     const animate = (t = 0) => {
-      animationRef.current = requestAnimationFrame(animate);
-      updateCamera(t);
-      obstaclesGroup.children.forEach((obstacle) => {
-        obstacle.rotation.y += 0.03;
-      });
-      crosshair.position.set(mousePos.x, mousePos.y, -1);
-      laserGroup.forEach((l) => l.userData.update());
-      composer.render(scene, camera);
+      if (!isComplete) {
+        animationRef.current = requestAnimationFrame(animate);
+        updateCamera(t);
+        obstaclesGroup.children.forEach((obstacle) => {
+          obstacle.rotation.y += 0.03;
+        });
+        crosshair.position.set(mousePos.x, mousePos.y, -1);
+        laserGroup.forEach((l) => l.userData.update());
+        composer.render(scene, camera);
+      }
     };
 
     animationRef.current = requestAnimationFrame(animate);
@@ -276,18 +323,27 @@ function WormholeShooter() {
         rendererRef.current.dispose();
       }
     };
-  }, []);
+  }, [isComplete, currentLevel]);
 
   return (
     <div className="game">
       <div className="game-wrapper">
         <div ref={containerRef} className="gameContainer" />
         <div className="ui-wrapper">
-          <InGameUI score={score} goal={goal} />
+          {!isComplete && (
+            <InGameUI
+              score={score}
+              goal={goal}
+              time={timeRemaining}
+              timeLimit={timeLimit}
+            />
+          )}
         </div>
       </div>
       <div className="game-complete">
-        {isComplete && <LevelComplete score={score} goal={goal} />}
+        {isComplete && (
+          <LevelComplete score={score} goal={goal} level={currentLevel} />
+        )}
       </div>
     </div>
   );

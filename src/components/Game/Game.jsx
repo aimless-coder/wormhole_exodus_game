@@ -4,28 +4,26 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import "./Game.css";
-
+import levelConfig from "./GameComps/gameLevel";
 import InGameUI from "../UI components/InGameUI/InGameUI";
 import tubePath from "./GameComps/tubePath";
 import obstacles from "./GameComps/obstacles";
 import getCrosshair from "./GameComps/getCrosshair";
 import getStarPoint from "./GameComps/starPoint";
 import LevelComplete from "../UI components/LevelComplete/LevelComplete";
-
-const levelConfig = [
-  { obstacleCount: 50, cameraSpeed: 0.1, goal: 30, timeLimit: 100 },
-  { obstacleCount: 70, cameraSpeed: 0.16, goal: 50, timeLimit: 150 },
-  { obstacleCount: 90, cameraSpeed: 0.22, goal: 70, timeLimit: 200 },
-];
+import Preloader from "../UI components/Preloader/Preloader";
+import { useGameContext } from "../GameContext";
 
 function WormholeShooter() {
+  const { currentLevel, incrementLevel } = useGameContext();
+
   const containerRef = useRef();
   const rendererRef = useRef(null);
   const animationRef = useRef(null);
 
+  const [loading, setLoading] = useState(true);
   const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-  const [currentLevel, setCurrentLevel] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(
     levelConfig[currentLevel].timeLimit
   );
@@ -33,44 +31,17 @@ function WormholeShooter() {
   const { obstacleCount, cameraSpeed, goal, timeLimit } =
     levelConfig[currentLevel];
 
-  const handleLevel = () => {
-    if (currentLevel < levelConfig.length - 1) {
-      setCurrentLevel((prev) => prev + 1);
-    }
-  };
-
   const handleLevelTimeout = () => {
     if (score < goal) {
       setIsComplete(true);
     }
   };
 
-  useEffect(() => {
-    setScore(0);
-    setTimeRemaining(timeLimit);
+  const startGame = () => {
+    setLoading(false);
+  };
 
-    let timer;
-    if (!isComplete) {
-      timer = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            handleLevelTimeout();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [currentLevel, isComplete]);
-
-  useEffect(() => {
-    setTimeRemaining(timeLimit);
-    setScore(0);
-  }, [currentLevel, timeLimit]);
-
-  useEffect(() => {
+  const initializeGame = () => {
     let w = window.innerWidth;
     let h = window.innerHeight;
 
@@ -200,7 +171,6 @@ function WormholeShooter() {
           setScore((prev) => {
             const newScore = prev + 1;
             if (newScore >= goal) {
-              handleLevel();
               setIsComplete(true);
             }
             return newScore;
@@ -264,7 +234,9 @@ function WormholeShooter() {
       }
     };
 
-    window.addEventListener("click", fireLaserShot);
+    if (!loading && !isComplete) {
+      window.addEventListener("click", fireLaserShot);
+    }
 
     const mousePos = new THREE.Vector2(0, 0);
     const onMouseMove = (e) => {
@@ -318,27 +290,64 @@ function WormholeShooter() {
     // CLEANUP
     return () => {
       window.removeEventListener("resize", handleWindowResize);
+      if (!loading) {
+        window.removeEventListener("click", fireLaserShot);
+      }
+
       if (containerRef.current && rendererRef.current) {
         containerRef.current.removeChild(rendererRef.current.domElement);
         rendererRef.current.dispose();
       }
     };
-  }, [isComplete, currentLevel]);
+  };
+
+  useEffect(() => {
+    setTimeRemaining(timeLimit);
+
+    let timer;
+    if (!isComplete) {
+      timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleLevelTimeout();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [currentLevel, isComplete]);
+
+  useEffect(() => {
+    if (loading) {
+      setTimeout(startGame, 2000);
+    } else {
+      initializeGame();
+    }
+  }, [loading]);
 
   return (
     <div className="game">
       <div className="game-wrapper">
-        <div ref={containerRef} className="gameContainer" />
-        <div className="ui-wrapper">
-          {!isComplete && (
-            <InGameUI
-              score={score}
-              goal={goal}
-              time={timeRemaining}
-              timeLimit={timeLimit}
-            />
-          )}
-        </div>
+        {loading ? (
+          <Preloader />
+        ) : (
+          <div>
+            <div ref={containerRef} className="gameContainer" />
+            <div className="ui-wrapper">
+              {!isComplete && (
+                <InGameUI
+                  score={score}
+                  goal={goal}
+                  time={timeRemaining}
+                  timeLimit={timeLimit}
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
       <div className="game-complete">
         {isComplete && (

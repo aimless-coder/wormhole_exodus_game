@@ -3,6 +3,7 @@ import Button from "../Button/Button";
 import "./LevelComplete.css";
 
 const LevelComplete = ({ score, goal, level }) => {
+  console.log("S", score);
   const navigate = useNavigate();
   const handleClick = () => {
     navigate("/game-score", { state: { score, goal, level } });

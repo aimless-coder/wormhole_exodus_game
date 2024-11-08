@@ -3,6 +3,17 @@ import Planet3D from "../Planet3D/Planet3D";
 import "./Home.css";
 
 const Home = () => {
+  const checkSave = () => {
+    try {
+      return localStorage.length > 0;
+    } catch (error) {
+      console.error("Error checking local storage:", error);
+      return false;
+    }
+  };
+
+  const isSaveGame = checkSave();
+
   return (
     <div className="home-container">
       <div className="home-wrapper">
@@ -17,10 +28,7 @@ const Home = () => {
           <div className="menu-section">
             <div className="menu">
               <Button name="New Game" to="/new-game" />
-              <Button
-                name={"Load Game"}
-                handleClick={() => console.log("Clicked")}
-              />
+              {isSaveGame && <Button name={"Load Game"} to={"/game"} />}
               <Button
                 name={"Sound"}
                 handleClick={() => console.log("Clicked")}

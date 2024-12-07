@@ -1,20 +1,59 @@
+import { useEffect, useRef } from "react";
 import Button from "../Button/Button";
 import "./EndPage.css";
 import { useLocation } from "react-router-dom";
 import { useGameContext } from "../../GameContext";
 import levelConfig from "../../Game/GameComps/gameLevel";
+import useExitConfirmation from "../../../hooks/useExitConfirmation";
 
 const EndPage = () => {
-  const { currentLevel, incrementLevel } = useGameContext();
+  const { currentLevel, incrementLevel, isSoundEnabled } = useGameContext();
   const location = useLocation();
+  const audioRef = useRef(null);
+  useExitConfirmation();
+
   const { score, goal } = location.state || {
     score: 0,
     goal: 0,
   };
 
+  const initAudio = () => {
+    if (isSoundEnabled && !audioRef.current) {
+      const bgMusic = new Audio("/audio/bgSound.mp3");
+      bgMusic.loop = true;
+      bgMusic.volume = 0.4;
+      bgMusic.play();
+      audioRef.current = bgMusic;
+    }
+  };
+
+  useEffect(() => {
+    initAudio();
+    document.addEventListener("click", initAudio, { once: true });
+
+    return () => {
+      document.removeEventListener("click", initAudio);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [isSoundEnabled]);
+
+  useEffect(() => {
+    if (!isSoundEnabled && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    } else if (isSoundEnabled) {
+      initAudio();
+    }
+  }, [isSoundEnabled]);
+
   const saveGameProgress = () => {
     try {
-      localStorage.setItem("level", JSON.stringify(currentLevel));
+      if (starsEarned > 0) {
+        localStorage.setItem("level", JSON.stringify(currentLevel));
+      }
     } catch (error) {
       console.error("Error saving:", error);
     }
@@ -36,18 +75,27 @@ const EndPage = () => {
   };
 
   const calculateStars = (score, goal) => {
-    if (score <= goal / 4) {
+    const percentage = (score / goal) * 100;
+    if (percentage <= 25) {
       return 0;
-    } else if (score > goal / 4 && score <= goal / 2) {
+    } else if (percentage <= 50) {
       return 1;
-    } else if (score > goal / 2 && score <= (3 * goal) / 4) {
+    } else if (percentage <= 75) {
       return 2;
-    } else if (score > (3 * goal) / 4) {
+    } else {
       return 3;
     }
   };
 
   const starsEarned = calculateStars(score, goal);
+
+  const handleFinalExit = () => {
+    if (currentLevel >= levelConfig.length - 1 && starsEarned > 0) {
+      deleteGameProgress();
+    } else {
+      saveGameProgress();
+    }
+  };
 
   return (
     <div className="end-container">
@@ -68,6 +116,7 @@ const EndPage = () => {
                     ? "./images/checkStar.png"
                     : "./images/uncheckStar.png"
                 }
+                alt={`star ${index + 1}`}
               />
             ))}
           </div>
@@ -78,15 +127,7 @@ const EndPage = () => {
           </div>
         </div>
         <div className="btn-section">
-          <Button
-            name="Exit"
-            to={"/"}
-            handleClick={
-              currentLevel < levelConfig.length - 1 && starsEarned > 0
-                ? nextLevel
-                : deleteGameProgress
-            }
-          />
+          <Button name="Exit" to="/" handleClick={handleFinalExit} />
           <Button
             name={
               currentLevel < levelConfig.length - 1
@@ -95,15 +136,11 @@ const EndPage = () => {
                   : "Next Level"
                 : "Main Menu"
             }
-            to={
-              currentLevel < levelConfig.length - 1 && starsEarned > 0
-                ? "/game"
-                : "/"
-            }
+            to={currentLevel < levelConfig.length - 1 ? "/game" : "/"}
             handleClick={
               currentLevel < levelConfig.length - 1 && starsEarned > 0
                 ? nextLevel
-                : deleteGameProgress
+                : handleFinalExit
             }
           />
         </div>

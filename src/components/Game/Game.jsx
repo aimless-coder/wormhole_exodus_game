@@ -13,28 +13,98 @@ import getStarPoint from "./GameComps/starPoint";
 import LevelComplete from "../UI components/LevelComplete/LevelComplete";
 import Preloader from "../UI components/Preloader/Preloader";
 import { useGameContext } from "../GameContext";
+import useExitConfirmation from "../../hooks/useExitConfirmation";
 
 function WormholeShooter() {
-  const { currentLevel, incrementLevel } = useGameContext();
+  const { currentLevel, incrementLevel, isSoundEnabled } = useGameContext();
+  useExitConfirmation();
 
   const containerRef = useRef();
   const rendererRef = useRef(null);
   const animationRef = useRef(null);
+  const cleanupRef = useRef(null);
+  const composerRef = useRef(null);
+  const obstaclesGroupRef = useRef(null);
+  const bgMusicRef = useRef(null);
+  const laserSoundRef = useRef(null);
+  const explodeSoundRef = useRef(null);
 
+  const [isAnimatingEnd, setIsAnimatingEnd] = useState(false);
   const [loading, setLoading] = useState(true);
   const [score, setScore] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(
     levelConfig[currentLevel].timeLimit
   );
+  const [isComplete, setIsComplete] = useState(false);
 
   const { obstacleCount, cameraSpeed, goal, timeLimit } =
     levelConfig[currentLevel];
 
+  const playSound = (sound) => {
+    if (isSoundEnabled && sound) {
+      sound.currentTime = 0;
+      sound.play().catch((error) => {
+        console.log("Sound playback failed:", error);
+      });
+    }
+  };
+
+  // Initialize sound effects
+  useEffect(() => {
+    if (isSoundEnabled) {
+      const laserSound = new Audio("/audio/laser.mp3");
+      const explodeSound = new Audio("/audio/explode.mp3");
+      laserSound.volume = 0.3;
+      explodeSound.volume = 0.3;
+      laserSoundRef.current = laserSound;
+      explodeSoundRef.current = explodeSound;
+
+      const bgMusic = new Audio("/audio/gameBackground.mp3");
+      bgMusic.loop = true;
+      bgMusic.volume = 0.4;
+      bgMusic.play().catch((error) => {
+        console.log("Audio playback failed:", error);
+      });
+      bgMusicRef.current = bgMusic;
+    }
+
+    return () => {
+      if (bgMusicRef.current) {
+        bgMusicRef.current.pause();
+        bgMusicRef.current = null;
+      }
+      if (laserSoundRef.current) {
+        laserSoundRef.current.pause();
+        laserSoundRef.current = null;
+      }
+      if (explodeSoundRef.current) {
+        explodeSoundRef.current.pause();
+        explodeSoundRef.current = null;
+      }
+    };
+  }, [isSoundEnabled]);
+
   const handleLevelTimeout = () => {
     if (score < goal) {
+      setIsAnimatingEnd(true);
+      if (obstaclesGroupRef.current) {
+        obstaclesGroupRef.current.children.forEach((obstacle) => {
+          obstacle.visible = false;
+        });
+      }
       setIsComplete(true);
     }
+  };
+
+  const handleLevelComplete = () => {
+    setIsAnimatingEnd(true);
+    // Let the last explosion animation finish before completing
+    setTimeout(() => {
+      setIsComplete(true);
+      if (score >= goal) {
+        incrementLevel();
+      }
+    }, 500); // Wait for explosion animation
   };
 
   const startGame = () => {
@@ -58,42 +128,16 @@ function WormholeShooter() {
     camera.position.z = 3;
     scene.add(camera);
 
-    //AUDIO SETUP
-    const sounds = [];
-    let explodeSound, laserSound;
-    const manager = new THREE.LoadingManager();
-    manager.onLoad = () => {};
-    const audioLoader = new THREE.AudioLoader(manager);
-    const mp3s = ["explode", "laser"];
-    const listener = new THREE.AudioListener();
-    camera.add(listener);
-    mp3s.forEach((name) => {
-      const sound = new THREE.Audio(listener);
-      sound.name = name;
-      if (name === "explode") {
-        explodeSound = sound;
-      }
-      if (name === "laser") {
-        laserSound = sound;
-      }
-      sounds.push(sound);
-      audioLoader.load(`./audio/${name}.mp3`, function (buffer) {
-        sound.setBuffer(buffer);
-      });
-    });
-
     // RENDERER SETUP
     const renderer = new THREE.WebGLRenderer({ antialias: false });
     renderer.setSize(w, h);
-
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    //POST PROCESSING
-    const sceneRender = new RenderPass(scene, camera);
+    // POST PROCESSING SETUP
+    const renderPass = new RenderPass(scene, camera);
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(w, h),
       1.5,
@@ -103,21 +147,23 @@ function WormholeShooter() {
     bloomPass.threshold = 0.002;
     bloomPass.strength = 3;
     bloomPass.radius = 0;
+
     const composer = new EffectComposer(renderer);
-    composer.addPass(sceneRender);
+    composer.addPass(renderPass);
     composer.addPass(bloomPass);
+    composerRef.current = composer;
 
     //GAME ENVIRONMENT
-
     const starField = getStarPoint();
     scene.add(starField);
 
-    const { tubeHitArea, tubeLines, tubeGeometry } = tubePath();
+    const { tubeHitArea, tubeLines, tubeGeometry } = tubePath(currentLevel);
     scene.add(tubeLines);
     scene.add(tubeHitArea);
 
     const { obstaclesGroup } = obstacles(obstacleCount);
     scene.add(obstaclesGroup);
+    obstaclesGroupRef.current = obstaclesGroup;
 
     const { crosshair } = getCrosshair();
     camera.add(crosshair);
@@ -132,6 +178,11 @@ function WormholeShooter() {
     const laserGeometry = new THREE.IcosahedronGeometry(0.05, 2);
 
     const getLaserShot = () => {
+      // Play laser sound
+      if (laserSoundRef.current) {
+        playSound(laserSoundRef.current);
+      }
+
       const laserMaterial = new THREE.MeshBasicMaterial({
         color: 0xff944d,
         transparent: true,
@@ -166,19 +217,20 @@ function WormholeShooter() {
 
         if (intersect[0].object.name === "box") {
           impactBox = intersect[0].object.userData.box;
-          obstaclesGroup.remove(intersect[0].object);
+          obstaclesGroupRef.current.remove(intersect[0].object);
+
+          // Play explosion sound
+          if (explodeSoundRef.current) {
+            playSound(explodeSoundRef.current);
+          }
 
           setScore((prev) => {
             const newScore = prev + 1;
             if (newScore >= goal) {
-              setIsComplete(true);
+              handleLevelComplete();
             }
             return newScore;
           });
-
-          explodeSound.stop();
-          explodeSound.detune = Math.floor(Math.random() * 1000 - 240);
-          explodeSound.play();
         }
       }
 
@@ -217,16 +269,10 @@ function WormholeShooter() {
     };
 
     const fireLaserShot = () => {
-      if (!isComplete && !loading) {
+      if (!isAnimatingEnd && !loading) {
         const laser = getLaserShot();
         laserGroup.push(laser);
         scene.add(laser);
-
-        if (!isComplete) {
-          laserSound.stop();
-          laserSound.detune = Math.floor(Math.random() * 1000 - 800);
-          laserSound.play();
-        }
 
         let inactiveLasers = laserGroup.filter(
           (l) => l.userData.active === false
@@ -236,9 +282,7 @@ function WormholeShooter() {
       }
     };
 
-    if (!loading && !isComplete) {
-      window.addEventListener("click", fireLaserShot);
-    }
+    window.addEventListener("click", fireLaserShot);
 
     const mousePos = new THREE.Vector2(0, 0);
     const onMouseMove = (e) => {
@@ -253,7 +297,8 @@ function WormholeShooter() {
     window.addEventListener("mousemove", onMouseMove, false);
 
     const updateCamera = (t) => {
-      const time = t * cameraSpeed;
+      const speedMultiplier = isAnimatingEnd ? 3 : 1;
+      const time = t * cameraSpeed * speedMultiplier;
       const loopTime = 15 * 1000;
       const p = (time % loopTime) / loopTime;
       const pos = tubeGeometry.parameters.path.getPointAt(p);
@@ -262,53 +307,86 @@ function WormholeShooter() {
       camera.lookAt(lookAt);
     };
 
-    // ANIMATION LOOP
-    const animate = (t = 0) => {
-      if (!isComplete) {
-        animationRef.current = requestAnimationFrame(animate);
-        updateCamera(t);
-        obstaclesGroup.children.forEach((obstacle) => {
-          obstacle.rotation.y += 0.03;
-        });
-        crosshair.position.set(mousePos.x, mousePos.y, -1);
-        laserGroup.forEach((l) => l.userData.update());
-        composer.render(scene, camera);
-      }
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    // RESIZE HANDLING
+    // WINDOW RESIZE HANDLER
     const handleWindowResize = () => {
       w = window.innerWidth;
       h = window.innerHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
-      bloomPass.setSize(w, h);
+      composer.setSize(w, h);
     };
     window.addEventListener("resize", handleWindowResize);
 
+    // ANIMATION LOOP
+    const animate = (t = 0) => {
+      if (!isComplete) {
+        animationRef.current = requestAnimationFrame(animate);
+        updateCamera(t);
+
+        if (!isAnimatingEnd) {
+          obstaclesGroupRef.current?.children.forEach((obstacle) => {
+            obstacle.rotation.y += 0.03;
+          });
+        }
+
+        crosshair.position.set(mousePos.x, mousePos.y, -1);
+        laserGroup.forEach((l) => l.userData.update());
+        composerRef.current.render();
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
     // CLEANUP
-    return () => {
+    const cleanup = () => {
       window.removeEventListener("resize", handleWindowResize);
       window.removeEventListener("click", fireLaserShot);
+      window.removeEventListener("mousemove", onMouseMove);
 
-      if (explodeSound) explodeSound.stop();
-      if (laserSound) laserSound.stop();
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
 
       if (containerRef.current && rendererRef.current) {
         containerRef.current.removeChild(rendererRef.current.domElement);
         rendererRef.current.dispose();
       }
+
+      // Clean up Three.js resources
+      laserGeometry.dispose();
+      laserGroup.forEach((laser) => {
+        laser.geometry.dispose();
+        laser.material.dispose();
+      });
+
+      if (composerRef.current) {
+        composerRef.current.dispose();
+      }
+
+      // Clean up all audio
+      if (bgMusicRef.current) {
+        bgMusicRef.current.pause();
+        bgMusicRef.current = null;
+      }
+      if (laserSoundRef.current) {
+        laserSoundRef.current.pause();
+        laserSoundRef.current = null;
+      }
+      if (explodeSoundRef.current) {
+        explodeSoundRef.current.pause();
+        explodeSoundRef.current = null;
+      }
     };
+
+    cleanupRef.current = cleanup;
   };
 
   useEffect(() => {
     setTimeRemaining(timeLimit);
 
     let timer;
-    if (!isComplete) {
+    if (!isAnimatingEnd) {
       timer = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -321,17 +399,22 @@ function WormholeShooter() {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [currentLevel, isComplete]);
+  }, [currentLevel, isAnimatingEnd]);
 
   useEffect(() => {
-    if (!isComplete) {
+    let timeoutId;
+    if (!isAnimatingEnd) {
       if (loading) {
-        setTimeout(startGame, 2000);
+        timeoutId = setTimeout(startGame, 2000);
       } else {
         initializeGame();
       }
     }
-  }, [loading, isComplete]);
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (cleanupRef.current) cleanupRef.current();
+    };
+  }, [loading, isAnimatingEnd]);
 
   return (
     <div className="game">
@@ -342,12 +425,13 @@ function WormholeShooter() {
           <div>
             <div ref={containerRef} className="gameContainer" />
             <div className="ui-wrapper">
-              {!isComplete && (
+              {!isAnimatingEnd && !isComplete && (
                 <InGameUI
                   score={score}
                   goal={goal}
                   time={timeRemaining}
                   timeLimit={timeLimit}
+                  level={currentLevel + 1}
                 />
               )}
             </div>

@@ -1,5 +1,6 @@
 import "./Button.css";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 
 const Button = ({ to, name, handleClick }) => {
   const navigate = useNavigate();
@@ -18,6 +19,12 @@ const Button = ({ to, name, handleClick }) => {
       </div>
     </div>
   );
+};
+
+Button.propTypes = {
+  to: PropTypes.string,
+  name: PropTypes.string.isRequired,
+  handleClick: PropTypes.func,
 };
 
 export default Button;

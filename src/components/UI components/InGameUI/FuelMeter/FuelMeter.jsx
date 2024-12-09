@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import "./FuelMeter.css";
 
 const FuelMeter = ({ time, timeLimit }) => {
@@ -6,13 +7,18 @@ const FuelMeter = ({ time, timeLimit }) => {
   return (
     <div className="fuelMeter-container">
       <div className="fuel-img">
-        <img src="./images/bullet.png" alt="Energy Icon" />
+        <img src="./images/gauge.png" alt="Energy Icon" />
       </div>
       <div className="fuel-bar">
         <div className="fuel-bar-fill" style={{ width: `${fuel}%` }}></div>
       </div>
     </div>
   );
+};
+
+FuelMeter.propTypes = {
+  time: PropTypes.number.isRequired,
+  timeLimit: PropTypes.number.isRequired,
 };
 
 export default FuelMeter;

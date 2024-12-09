@@ -38,7 +38,10 @@
 }
 
 .title h1{
-    font-size: 72px;
+    font-family: 'SDGlitch';
+    font-size: 80px;
+    letter-spacing: 20px;
+    font-weight: 100;
 }
 
 .title p{

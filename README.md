@@ -10,7 +10,7 @@ Live demo, visit [Wormhole Exodus](https://wormhole-exodus-game.vercel.app/)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Installation](#installation)
-- [Case Study: Development Process](#case-study-development-process)
+- [Development Process](#development-process)
 
 ## Demo
 

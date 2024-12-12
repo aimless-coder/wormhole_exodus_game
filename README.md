@@ -1,4 +1,4 @@
-# Wormhole Exodus 🚀
+# Wormhole Exodus
 
 A thrilling space-themed 3D shooter game where you navigate through wormholes while clearing dangerous debris to save the universe.
 

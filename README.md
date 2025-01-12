@@ -213,7 +213,3 @@ npm run dev
 - Create additional visual themes
 - Develop power-up system
 - Add leaderboard functionality
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.

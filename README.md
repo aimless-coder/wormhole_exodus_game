@@ -14,10 +14,10 @@ Live demo, visit [Wormhole Exodus](https://wormhole-exodus-game.vercel.app/)
 
 ## Demo
 
-![Game Screenshot 1](./public/images/demo1.png)
+![Game Screenshot 1](./public/screenshot/demo1.png)
 _Main Menu Screen_
 
-![Game Screenshot 2](./public/images/demo2.png)
+![Game Screenshot 2](./public/screenshot/demo2.png)
 _Gameplay Screen_
 
 ## Features
